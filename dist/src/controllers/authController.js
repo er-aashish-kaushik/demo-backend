@@ -35,7 +35,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.signup = void 0;
+exports.refreshToken = exports.login = exports.signup = void 0;
 const bcryptjs_1 = __importStar(require("bcryptjs"));
 const user_model_1 = require("../models/user.model");
 const auth_1 = require("../utils/auth");
@@ -84,7 +84,46 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 phone: userData.phone
             };
             const accessToken = yield (0, auth_1.createAccessToken)(incodeDataInAccessToken);
-            const refreshToken = yield (0, auth_1.createAccessToken)(incodeDataInRefreshToken);
+            const refreshToken = yield (0, auth_1.createAccessToken)(incodeDataInRefreshToken, '365d');
+            const userDataRes = Object.assign(Object.assign({}, incodeDataInAccessToken), { gender: userData.gender, accessToken, refreshToken });
+            (0, response_1.REQUEST_SUCCESS)(res, { data: { message: "Refreshed session successfull", data: userDataRes } }, 201);
+        }
+    }
+    catch (error) {
+        console.error(error);
+        (0, response_1.REQUEST_FAILURE)(res, { error: 'Internal server error' }, 500);
+    }
+});
+exports.login = login;
+const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    logger_1.default.info('refreshToken:controller:invoke');
+    try {
+        const { refreshToken } = req.body;
+        const decodedToken = yield (0, auth_1.verifyToken)(refreshToken);
+        console.log("aashish----------decodedToken", decodedToken);
+        let userData = yield user_model_1.User.findOne({ _id: decodedToken === null || decodedToken === void 0 ? void 0 : decodedToken._id });
+        console.log("aashish----------userData", userData);
+        if (!userData) {
+            (0, response_1.REQUEST_FAILURE)(res, { error: 'Invalid refreshToken' }, 500);
+        }
+        else {
+            const incodeDataInAccessToken = {
+                _id: userData._id,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                email: userData.email,
+                phone: userData.phone,
+                role: userData.role
+            };
+            const incodeDataInRefreshToken = {
+                _id: userData._id,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                email: userData.email,
+                phone: userData.phone
+            };
+            const accessToken = yield (0, auth_1.createAccessToken)(incodeDataInAccessToken);
+            const refreshToken = yield (0, auth_1.createAccessToken)(incodeDataInRefreshToken, '365d');
             const userDataRes = Object.assign(Object.assign({}, incodeDataInAccessToken), { gender: userData.gender, accessToken, refreshToken });
             (0, response_1.REQUEST_SUCCESS)(res, { data: { message: "Login successfull", data: userDataRes } }, 201);
         }
@@ -94,4 +133,4 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         (0, response_1.REQUEST_FAILURE)(res, { error: 'Internal server error' }, 500);
     }
 });
-exports.login = login;
+exports.refreshToken = refreshToken;

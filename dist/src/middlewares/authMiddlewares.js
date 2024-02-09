@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateToken = exports.validateLogin = exports.validateSignup = void 0;
+exports.validateRefreshToken = exports.validateToken = exports.validateLogin = exports.validateSignup = void 0;
 const joi_1 = __importDefault(require("joi"));
 const auth_1 = require("../utils/auth");
 const user_model_1 = require("../models/user.model");
@@ -75,7 +75,21 @@ const validateToken = (req, res, next) => __awaiter(void 0, void 0, void 0, func
     }
     catch (error) {
         console.error('Error during authentication:', error.message);
-        (0, response_1.REQUEST_FAILURE)(res, { error: error.message || "Forbidden" }, 403);
+        (0, response_1.REQUEST_FAILURE)(res, { error: error.message || "Forbidden" }, 401);
     }
 });
 exports.validateToken = validateToken;
+const validateRefreshToken = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    logger_1.default.info('validateRefreshToken::invoke');
+    const validateRefreshTokenSchema = joi_1.default.object({
+        refreshToken: joi_1.default.string().required()
+    });
+    const { error } = validateRefreshTokenSchema.validate(req.body);
+    if (error) {
+        return (0, response_1.REQUEST_FAILURE)(res, {
+            error: error.details
+        });
+    }
+    next();
+});
+exports.validateRefreshToken = validateRefreshToken;

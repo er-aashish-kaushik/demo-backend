@@ -48,7 +48,46 @@ const login = async (req: Request, res: Response) => {
         phone: userData.phone
       }
       const accessToken = await createAccessToken(incodeDataInAccessToken)
-      const refreshToken = await createAccessToken(incodeDataInRefreshToken)
+      const refreshToken = await createAccessToken(incodeDataInRefreshToken, '365d')
+
+      const userDataRes = { ...incodeDataInAccessToken, gender: userData.gender, accessToken, refreshToken }
+      REQUEST_SUCCESS(res, { data: { message: "Refreshed session successfull", data: userDataRes } }, 201)
+    }
+
+  } catch (error) {
+    console.error(error);
+    REQUEST_FAILURE(res, { error: 'Internal server error' }, 500)
+  }
+};
+
+const refreshToken = async (req: Request, res: Response) => {
+  logger.info('refreshToken:controller:invoke');
+  try {
+    const { refreshToken } = req.body
+    const decodedToken: any = await verifyToken(refreshToken);
+    let userData: any = await User.findOne({ _id: decodedToken?._id });
+    if (!userData) {
+      REQUEST_FAILURE(res, { error: 'Invalid refreshToken' }, 500)
+    }
+    else {
+      const incodeDataInAccessToken = {
+        _id: userData._id,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        phone: userData.phone,
+        role: userData.role
+      }
+
+      const incodeDataInRefreshToken = {
+        _id: userData._id,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        phone: userData.phone
+      }
+      const accessToken = await createAccessToken(incodeDataInAccessToken)
+      const refreshToken = await createAccessToken(incodeDataInRefreshToken, '365d')
 
       const userDataRes = { ...incodeDataInAccessToken, gender: userData.gender, accessToken, refreshToken }
       REQUEST_SUCCESS(res, { data: { message: "Login successfull", data: userDataRes } }, 201)
@@ -58,6 +97,7 @@ const login = async (req: Request, res: Response) => {
     console.error(error);
     REQUEST_FAILURE(res, { error: 'Internal server error' }, 500)
   }
-};
 
-export { signup, login };
+}
+
+export { signup, login, refreshToken };

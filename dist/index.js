@@ -9,12 +9,14 @@ const logger_1 = __importDefault(require("./config/logger"));
 const db_1 = __importDefault(require("./config/database/db"));
 const cors_1 = __importDefault(require("cors"));
 const userRoute_1 = require("./src/routes/userRoute");
+const authRoute_1 = require("./src/routes/authRoute");
 const mongoose_1 = __importDefault(require("mongoose"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.use('/v1/user/', userRoute_1.userRouter);
+app.use('/v1/auth/', authRoute_1.authRouter);
 const db = mongoose_1.default.connection;
 (0, db_1.default)();
 app.get('/', (req, res) => {

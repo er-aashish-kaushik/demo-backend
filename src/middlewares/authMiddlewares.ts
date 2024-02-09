@@ -64,10 +64,25 @@ const validateToken = async (req: RequestWithUser, res: Response, next: NextFunc
     next();
   } catch (error: any) {
     console.error('Error during authentication:', error.message);
-    REQUEST_FAILURE(res, { error: error.message || "Forbidden" }, 403)
+    REQUEST_FAILURE(res, { error: error.message || "Forbidden" }, 401)
   }
 };
 
-export { validateSignup, validateLogin, validateToken };
+const validateRefreshToken = async (req: Request, res: Response, next: NextFunction) => {
+  logger.info('validateRefreshToken::invoke');
+  const validateRefreshTokenSchema: Joi.Schema = Joi.object({
+    refreshToken: Joi.string().required()
+  });
+  const { error } = validateRefreshTokenSchema.validate(req.body);
+  if (error) {
+    return REQUEST_FAILURE(res, {
+      error: error.details
+    });
+  }
+
+  next()
+};
+
+export { validateSignup, validateLogin, validateToken, validateRefreshToken };
 
 
