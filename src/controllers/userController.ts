@@ -31,7 +31,7 @@ const getUsersList = async (req: RequestWithUser, res: Response) => {
 
         const userlist = await User.find({}, projectionData).skip(skip).limit(parseInt(limit as string));
         const totalCounts = await User.countDocuments();
-        REQUEST_SUCCESS(res, { data: { message: "User created successfully", data: { userlist, totalCounts } } }, 201)
+        REQUEST_SUCCESS(res, { data: { message: "User fetched successfully", data: { userlist, totalCounts } } }, 201)
     } catch (error) {
         console.error(error);
         REQUEST_FAILURE(res, { error: 'Internal server error' }, 500)
